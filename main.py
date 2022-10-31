@@ -115,9 +115,15 @@ class KNN:
             if y_pre == y:
                 right_count += 1
         # 计算预测真确率
-        return right_count / len(X_test)*100
+        return right_count / len(X_test)
 
 
 # 训练
 clf = KNN(X_train, y_train,4)
 print(clf.score(X_test, y_test))
+
+from sklearn.neighbors import KNeighborsClassifier
+clf_sk = KNeighborsClassifier()
+clf_sk.fit(X_train, y_train)
+print('='*100)
+print(clf_sk.score(X_test, y_test))

@@ -1,7 +1,12 @@
 import math
-from itertools import combinations
-
-
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from collections import Counter
+#
+#
 # 欧式距离
 def L(x, y, p=2):
     # 保证两个向量的维数一样，并且，维数大于等于1位，
@@ -18,25 +23,17 @@ def L(x, y, p=2):
         return 0
 
 
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from collections import Counter
-
 # 载入花花数据集
 iris = load_iris()
-# 将数据转换为pandas数据，利用pandas方便操作
+# 将数据转换为pandas数据，利用pandas方便操作   150行，4列
 df = pd.DataFrame(iris.data, columns=iris.feature_names)
-#  150行，4列
-
 # 定义标签
 df['label'] = iris.target
 # 前50个标签为0，中间50个标签为1，后面50个标签为2
 # 重新命名属性名。 以前的名字是：'sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)'
 df.columns = ['sepal length', 'sepal width', 'petal length', 'petal width', 'label']
+print(df)
+print('='*100)
 # 下面画图
 # scatter 用于画散点图 前50个label为0，后50个label为1。
 plt.scatter(df[:50]['sepal length'], df[:50]['sepal width'], label='0')
@@ -45,9 +42,7 @@ plt.scatter(df[50:100]['sepal length'], df[50:100]['sepal width'], label='1')
 plt.xlabel('sepal length')
 plt.ylabel('sepal width')
 plt.legend()
-# plt.show()
-
-
+plt.show()
 # df.iloc[:100, [0, 1, -1] 取df数据的前100行，第0,1,和最后一列，最后一列也就是标签页
 data = np.array(df.iloc[:100, [0, 1, -1]])
 # 分离数据和标签
@@ -70,7 +65,7 @@ class KNN:
 
     def predict(self, X):
         knn_list = []
-        # 选算前n个点的距离
+        # 先算前n个点的距离
         for i in range(self.n):
             # dist = np.linalg.norm(X - self.X_train[i], ord=self.p)
             # 计算距离
@@ -92,7 +87,7 @@ class KNN:
                 knn_list[max_index] = (dist, self.y_train[i])
         # 上面循环完了之后，knn_list中存着距离最短的n个节点的距离与标签
 
-        # 统计
+        # 统计，标签多的就是这个分类
         # 拿到所有标签
         knn = [k[-1] for k in knn_list]
         # Counter()统计标签  例如 {0：10;1:2} 表示0标签10个，1标签2个
@@ -119,11 +114,35 @@ class KNN:
 
 
 # 训练
-clf = KNN(X_train, y_train,4)
+clf = KNN(X_train, y_train, 4)
 print(clf.score(X_test, y_test))
 
+
+# 分类
 from sklearn.neighbors import KNeighborsClassifier
 clf_sk = KNeighborsClassifier()
 clf_sk.fit(X_train, y_train)
-print('='*100)
+print('=' * 100)
 print(clf_sk.score(X_test, y_test))
+
+# 回归
+import time
+from sklearn.neighbors import KNeighborsRegressor
+kn_rg=KNeighborsRegressor()
+df = pd.read_csv("tlf.csv")
+# 日期变为数字
+df['data']= [ time.mktime(time.strptime(i, "%Y/%m/%d %H:%M")) for i in list(df['data'])]
+# one hot
+df=pd.get_dummies(df)
+k = df.pop("fee")
+df.insert(df.shape[1],"fee",k)
+data = np.array(df,dtype='float32')
+X, y = data[:,:-1], data[:, -1]
+
+print(y)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
+# 训练
+kn_rg.fit(X_train,y_train)
+print("defen:")
+print(kn_rg.score(X_test, y_test))
